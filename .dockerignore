@@ -1,0 +1,34 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Rebuilt inside the image
+vendor
+node_modules
+public/build
+public/hot
+bootstrap/cache/*.php
+
+# Runtime data, including tenant files
+storage/tenant*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/*
+public/uploads
+
+# Not needed to run the app
+.git
+.github
+.vscode
+.phpunit.cache
+.phpunit.result.cache
+tests
+scratch
+start.bat
+README.md
+Dockerfile
+.dockerignore
+compose.yaml

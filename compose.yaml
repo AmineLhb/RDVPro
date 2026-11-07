@@ -1,0 +1,63 @@
+# Local stack: the same image runs as web, queue worker and scheduler.
+x-app: &app
+  build: .
+  image: rdvpro:local
+  env_file: .env.docker
+  volumes:
+    - storage:/var/www/html/storage
+    - uploads:/var/www/html/public/uploads
+  restart: unless-stopped
+
+services:
+  mysql:
+    image: mysql:8.4
+    env_file: .env.docker
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  # Runs once, then exits. The app only starts if it succeeds.
+  migrate:
+    <<: *app
+    command: sh -c "php artisan migrate --force && php artisan tenants:migrate --force"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    <<: *app
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  queue:
+    <<: *app
+    command: php artisan queue:work --tries=3 --timeout=90
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  scheduler:
+    <<: *app
+    command: php artisan schedule:work
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  mysql-data:
+  storage:
+  uploads:
