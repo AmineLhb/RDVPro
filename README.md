@@ -113,3 +113,29 @@ When using RDVPro for clinics or medical practitioners, strict local data-protec
   - MySQL databases should utilize Transparent Data Encryption (TDE) to protect customer record JSON columns (`entry_data`) at rest.
   - SSL/TLS is strictly enforced for all data transmission.
 
+
+---
+
+## Running with Docker
+
+One image runs as the web app, the queue worker and the scheduler. A one-shot `migrate` service updates the central database and every tenant before the app starts.
+
+1. Copy `.env.docker.example` to `.env.docker`, then set `APP_KEY` and the two passwords. Generate a key with `php artisan key:generate --show`.
+2. Start the stack:
+   ```bash
+   docker compose up -d --build
+   ```
+3. Load the demo data, first run only:
+   ```bash
+   docker compose exec app php artisan db:seed --force
+   ```
+4. Open `http://admin.rdvpro.test:8080` or `http://bahja.rdvpro.test:8080`. The domains must be in your `hosts` file, which `start.bat` handles.
+
+Useful commands:
+```bash
+docker compose ps
+docker compose logs -f app queue
+docker compose down
+```
+
+`docker compose down -v` also deletes the database and uploaded files.

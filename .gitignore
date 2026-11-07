@@ -25,3 +25,4 @@ yarn-error.log
 # Tenant data: customer uploads must never be in Git
 /storage/tenant*
 /public/uploads
+.env.docker
